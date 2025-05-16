@@ -12,11 +12,4 @@ public class SurfaceProperties : MonoBehaviour
     // public float roughness = 0.1f;
     // public enum MaterialType { Concrete, Metal, Plastic }
     // public MaterialType material = MaterialType.Concrete;
-
-    // You might add a method here to handle adding stuck snowflakes
-    // public void AddStuckSnowflake(GameObject snowflake)
-    // {
-    //     // Keep track of stuck snowflakes, maybe for accumulation logic
-    //     // For example, add to a List<GameObject>
-    // }
 }

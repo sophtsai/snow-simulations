@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class EnvironmentManager : MonoBehaviour
 {
-    public float ambientTemperature = -2.0f; // ambient air temperature (Celsius)
-    public float currentSnowfallRateSWE = 10.0f; // snowfall accumulation rate (meters of SWE per second); 1 mm/hour of SWE is roughly 2.78e-7 m/s
+    public float ambientTemperature = 2.0f; // ambient air temperature (Celsius)
+    public float currentSnowfallRateSWE = 10.0f; // snowfall accumulation rate (mm/hour); 
 
     // You could add other environmental factors here:
     // public float windSpeed = 0.0f;
