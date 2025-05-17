@@ -20,6 +20,13 @@ public enum SurfaceType
 
 public class SurfaceTile : MonoBehaviour
 {
+  // Constants
+  const float sigma = 5.67e-8f; // W/m^2*K^4
+  const float rhoAir = 1.225f; // kg/m^3
+  const float cpAir = 1005f; // J/kg*K
+  const float Lv = 2.5e6f; // J/kg
+
+
   // Inputs
   public float airTemperature; // °C
   public float precipitation; // mm/day
@@ -37,20 +44,18 @@ public class SurfaceTile : MonoBehaviour
   public float SWE = 0f; // mm
   public float snowDepth = 0f; // mm
   public float snowDensity = 300f; // kg/m^3
-  const float sigma = 5.67e-8f; // W/m^2*K^4
-  const float rhoAir = 1.225f; // kg/m^3
-  const float cpAir = 1005f; // J/kg*K
-  const float Lv = 2.5e6f; // J/kg
   const float q_a = 0.01f; // kg/kg
   const float q_s = 0.0048f; // kg/kg
   const float Ls = 2.834e6f; // J/kg
   const float Lf = 3.34e5f; // J/kg 
   const float rhoWater = 1000f; // kg/m^3
   const float aerodynamicResistance = 100f; // s/m
+  public SurfaceType surfaceType;
 
   GameObject surfaceViz;
   GameObject depthTextObj;
   TextMesh depthText;
+  public SurfaceTileManager surfaceTileManager;
 
   private List<DailyWeatherData> weatherData;
   private int currentDayIndex = 0;
@@ -60,8 +65,6 @@ public class SurfaceTile : MonoBehaviour
   {
     airTemperature = -2.0f;
     precipitation = 2.0f;
-
-    LoadWeatherData();
 
     surfaceViz = GameObject.CreatePrimitive(PrimitiveType.Cube);
     surfaceViz.transform.position = transform.position;
@@ -75,6 +78,8 @@ public class SurfaceTile : MonoBehaviour
     depthText = depthTextObj.AddComponent<TextMesh>();
     depthText.fontSize = 10;
     depthText.color = Color.black;
+
+    SetGroundTemperature();
   }
 
   void Update()
@@ -152,7 +157,7 @@ public class SurfaceTile : MonoBehaviour
 
   void SimulateDay(float time)
   {
-    float P_snow = airTemperature <= 0f ? precipitation : 0f;   
+    float P_snow = airTemperature <= 0f ? precipitation : 0f;
     float Ts_K = snowSurfaceTemperature + 273.15f;
     float Ta_K = airTemperature + 273.15f;
 
@@ -161,7 +166,7 @@ public class SurfaceTile : MonoBehaviour
 
     // net longwave radiation
     float Q_LW = (0.85f * sigma * Mathf.Pow(Ta_K, 4)) - (0.98f * sigma * Mathf.Pow(Ts_K, 4));
-    
+
     // sensible heat flux
     float Q_S = (rhoAir * cpAir * (airTemperature - snowSurfaceTemperature)) / aerodynamicResistance;
 
@@ -169,13 +174,14 @@ public class SurfaceTile : MonoBehaviour
     float Q_L = (rhoAir * Lv * (q_a - q_s)) / aerodynamicResistance;
 
     // ground heat flux
+    SetGroundTemperature();
     float snowConductivity = 0.138f * Mathf.Pow((snowDensity / 1000f), 2);
     float temperatureGradient = (snowSurfaceTemperature - groundTemperature) / snowDepth;
     float Q_G = -snowConductivity * temperatureGradient;
 
-    float Q_net = Q_SW + Q_LW + Q_S + Q_L + Q_G ;
-    float meltEnergyPerDay = Q_net * 86400f; 
-    float M = Mathf.Max(0f, meltEnergyPerDay / (rhoWater * Lf)); 
+    float Q_net = Q_SW + Q_LW + Q_S + Q_L + Q_G;
+    float meltEnergyPerDay = Q_net * 86400f;
+    float M = Mathf.Max(0f, meltEnergyPerDay / (rhoWater * Lf));
     float retention = retentionFraction * SWE;
     float R = Mathf.Max(0f, M - retention);
 
@@ -186,13 +192,30 @@ public class SurfaceTile : MonoBehaviour
     SetDepth(snowDepth);
 
     depthText.text = $"{snowDepth:F2}";
-
-    Debug.Log($"SWE: {SWE:F2} mm, Depth: {snowDepth:F2} mm, Melt: {M:F2}");
   }
 
   void SetDepth(float depth)
   {
     surfaceViz.transform.localScale = new Vector3(1, depth / 1000, 1);
     surfaceViz.transform.position = new Vector3(transform.position.x, depth / 2000, transform.position.z);
+  }
+
+  void SetGroundTemperature()
+  {
+    switch (surfaceType)
+    {
+      case SurfaceType.Concrete:
+        groundTemperature = airTemperature + (0.28f * incomingShortwave / 1000f) + 2.5f;
+        break;
+      case SurfaceType.Asphalt:
+        float airTemperatureF = airTemperature * 9f / 5f + 32f;
+        groundTemperature = 26.081f - 0.844f * windSpeed - 0.187f * relativeHumidity - 0.0173f * incomingShortwave + 0.0042254f * windSpeed * airTemperature + 0.00565f * windSpeed * relativeHumidity + 0.0016f * windSpeed * incomingShortwave + 0.00342f * airTemperature * relativeHumidity + 0.000117f * airTemperature * incomingShortwave + 5.7029e-5f * relativeHumidity * incomingShortwave + 0.00425f * airTemperature * airTemperature + 1.9125e-5f * incomingShortwave * incomingShortwave;
+        groundTemperature -= 32f;
+        groundTemperature *= 5f / 9f;
+        break;
+      case SurfaceType.Grass:
+        groundTemperature = airTemperature + (0.12f * incomingShortwave / 1000f) - 1.5f;
+        break;
+    }
   }
 }
