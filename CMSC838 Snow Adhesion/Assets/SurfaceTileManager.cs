@@ -5,6 +5,12 @@ using UnityEngine;
 public class SurfaceTileManager : MonoBehaviour
 {
   // Constants
+  const float sigma = 5.67e-8f; // W/m^2*K^4
+  const float rhoAir = 1.225f; // kg/m^3 (density of air)
+  const float cpAir = 1005f; // J/kg*K (specific heat of air)
+  const float Lv = 2.5e6f; // J/kg (latent heat of vaporization)
+  const float Ls = 2.834e6f; // J/kg (latent heat of sublimation)
+  const float Lf = 3.34e5f; // J/kg (latent heat of fusion)
 
 
   // Environment Variables

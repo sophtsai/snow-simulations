@@ -9,6 +9,13 @@ public enum SurfaceType
 
 public class SurfaceTile : MonoBehaviour
 {
+  // Constants
+  const float sigma = 5.67e-8f; // W/m^2*K^4
+  const float rhoAir = 1.225f; // kg/m^3
+  const float cpAir = 1005f; // J/kg*K
+  const float Lv = 2.5e6f; // J/kg
+
+
   // Inputs
   public float airTemperature; // °C
   public float precipitation; // mm/day
