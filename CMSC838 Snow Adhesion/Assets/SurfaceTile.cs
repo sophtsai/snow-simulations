@@ -93,6 +93,6 @@ public class SurfaceTile : MonoBehaviour
   void SetDepth(float depth)
   {
     surfaceViz.transform.localScale = new Vector3(1, depth / 1000, 1);
-    surfaceViz.transform.position = new Vector3(0, depth / 2000, 0);
+    surfaceViz.transform.position = new Vector3(transform.position.x, depth / 2000, transform.position.z);
   }
 }
