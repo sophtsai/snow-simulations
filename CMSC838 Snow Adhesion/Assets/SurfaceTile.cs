@@ -36,7 +36,10 @@ public class SurfaceTile : MonoBehaviour
   const float Lf = 3.34e5f; // J/kg 
   const float rhoWater = 1000f; // kg/m^3
   const float aerodynamicResistance = 100f; // s/m
+
   GameObject surfaceViz;
+  GameObject depthTextObj;
+  TextMesh depthText;
 
   void Start()
   {
@@ -45,6 +48,15 @@ public class SurfaceTile : MonoBehaviour
 
     surfaceViz = GameObject.CreatePrimitive(PrimitiveType.Cube);
     surfaceViz.transform.localScale = new Vector3(1, 0.0f, 1);
+
+    depthTextObj = new GameObject("SnowDepthText");
+    depthTextObj.transform.SetParent(surfaceViz.transform);
+    depthTextObj.transform.localPosition = new Vector3(0, 0, 0.5f);
+    depthTextObj.transform.localRotation = Quaternion.Euler(90, 0, 0);
+    depthTextObj.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+    depthText = depthTextObj.AddComponent<TextMesh>();
+    depthText.fontSize = 10;
+    depthText.color = Color.black;
   }
 
   void Update()
@@ -86,6 +98,8 @@ public class SurfaceTile : MonoBehaviour
 
     snowDepth = (SWE * 1000f) / snowDensity;
     SetDepth(snowDepth);
+
+    depthText.text = $"{snowDepth:F2}";
 
     Debug.Log($"SWE: {SWE:F2} mm, Depth: {snowDepth:F2} mm, Melt: {M:F2}");
   }
