@@ -62,30 +62,28 @@ public class SnowpackManager : MonoBehaviour
     void Update() {
         if (environment == null) return; 
 
-        float P_snow = (environment.ambientTemperature <= 0.0f) ? environment.currentSnowfallRateSWE : 0f;
-        float M = (environment.ambientTemperature > 0.0f)
-            ? degreeDayFactor * (environment.ambientTemperature - 0.0f)
-            : 0f;
-        float retention = 0.05f * snowWaterEquivalent;
-        float R = Mathf.Max(0f, M - retention);
-        // Update SWE
-        snowWaterEquivalent += P_snow - M - R;
-        snowWaterEquivalent = Mathf.Max(snowWaterEquivalent, 0f); 
-         Debug.Log("snowWaterEquivalent: " + snowWaterEquivalent);
-        // Update snow depth
-        snowDepth = (snowWaterEquivalent * 1000f) / 300f; // convert SWE to mm depth
-        Debug.Log("Snow Depth: " + snowDepth);
+        // float P_snow = (environment.ambientTemperature <= 0.0f) ? environment.currentSnowfallRateSWE : 0f;
+        // float M = (environment.ambientTemperature > 0.0f)
+        //     ? degreeDayFactor * (environment.ambientTemperature - 0.0f)
+        //     : 0f;
+        // float retention = 0.05f * SWE;
+        // float R = Mathf.Max(0f, M - retention);
+        // // Update SWE
+        // SWE += P_snow - M - R;
+        // SWE = Mathf.Max(SWE, 0f); // no negative SWE
+        // // Update snow depth
+        // snowDepth = (SWE * 1000f) / snowDensity; // convert SWE to mm depth
 
         // Mass Balance Equation
-        // float snowfallRateSWE_per_sec = environment.currentSnowfallRateSWE; 
-        // float meltRate_per_sec = environment.ambientTemperature > meltingTemperature ? environment.ambientTemperature * degreeDayFactor / 86400.0f:  0.0f;
-        // float runoffRate_per_sec = Mathf.Max(0.0f, meltRate_per_sec - 0.04f * snowWaterEquivalent); 
-        // snowWaterEquivalent += (snowfallRateSWE_per_sec - meltRate_per_sec - runoffRate_per_sec) * Time.deltaTime;
-        // snowWaterEquivalent = Mathf.Max(0.0f, snowWaterEquivalent); 
-        // Debug.Log("SWE: " + snowWaterEquivalent);
+        float snowfallRateSWE_per_sec = environment.currentSnowfallRateSWE; 
+        float meltRate_per_sec = environment.ambientTemperature > meltingTemperature ? environment.ambientTemperature * degreeDayFactor / 86400.0f:  0.0f;
+        float runoffRate_per_sec = Mathf.Max(0.0f, meltRate_per_sec - 0.04f * snowWaterEquivalent); 
+        snowWaterEquivalent += (snowfallRateSWE_per_sec - meltRate_per_sec - runoffRate_per_sec) * Time.deltaTime;
+        snowWaterEquivalent = Mathf.Max(0.0f, snowWaterEquivalent); 
+        Debug.Log("SWE: " + snowWaterEquivalent);
 
-        // currentSnowDensity = Mathf.MoveTowards(currentSnowDensity, settledSnowDensity, densityIncreaseRate * Time.deltaTime);
-        // snowDepth = snowWaterEquivalent * (1000.0f / currentSnowDensity);
+        currentSnowDensity = Mathf.MoveTowards(currentSnowDensity, settledSnowDensity, densityIncreaseRate * Time.deltaTime);
+        snowDepth = snowWaterEquivalent * (1000.0f / currentSnowDensity);
 
         if (snowVisual != null)
         {
