@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-public class DailyWeatherData 
+public class DailyWeatherData
 {
   public string Date; // YYYY-MM-DD
   public float AirTemperature; // °C
@@ -63,6 +63,7 @@ public class SurfaceTile : MonoBehaviour
 
   void Start()
   {
+    LoadWeatherData();
     airTemperature = -2.0f;
     precipitation = 2.0f;
 
@@ -84,75 +85,81 @@ public class SurfaceTile : MonoBehaviour
 
   void Update()
   {
-    if (currentDayIndex < weatherData.Count)
+    if (currentDayIndex >= weatherData.Count)
     {
-        currentDayIndex++; 
-        UpdateParametersForCurrentDay();
-        SimulateDay(Time.deltaTime); // parameter means 1 day runs every second
+      return;
     }
+    simulationDayAccumulator += Time.deltaTime;
+    if (simulationDayAccumulator >= 1f) // 1 second = 1 day
+    {
+      simulationDayAccumulator = 0f;
+      currentDayIndex++;
+      UpdateParametersForCurrentDay();
+    }
+    SimulateDay(Time.deltaTime); // parameter means 1 day runs every second
   }
 
   void LoadWeatherData()
   {
-      weatherData = new List<DailyWeatherData>();
-      TextAsset dataAsset = Resources.Load<TextAsset>("Buffalo_NY_Feb_2023");
+    weatherData = new List<DailyWeatherData>();
+    TextAsset dataAsset = Resources.Load<TextAsset>("Buffalo_NY_Feb_2023");
 
-      if (dataAsset == null)
+    if (dataAsset == null)
+    {
+      Debug.LogError($"Failed to load csv.");
+      return;
+    }
+
+    StringReader reader = new StringReader(dataAsset.text);
+
+    string headerLine = reader.ReadLine();
+
+    string dataLine;
+    while ((dataLine = reader.ReadLine()) != null)
+    {
+      string[] values = dataLine.Split(',');
+      DailyWeatherData dayData = new DailyWeatherData();
+      dayData.Date = values[0].Trim();
+
+      if (float.TryParse(values[1].Trim(), out float tempValue))
       {
-          Debug.LogError($"Failed to load csv.");
-          return;
+        dayData.AirTemperature = tempValue;
+      }
+      if (float.TryParse(values[2].Trim(), out float precipValue))
+      {
+        dayData.Precipitation = precipValue;
+      }
+      if (float.TryParse(values[3].Trim(), out float swValue))
+      {
+        dayData.IncomingShortwave = swValue;
+      }
+      if (float.TryParse(values[4].Trim(), out float windValue))
+      {
+        dayData.WindSpeed = windValue;
+      }
+      if (float.TryParse(values[5].Trim(), out float humidityValue))
+      {
+        dayData.Humidity = humidityValue;
       }
 
-      StringReader reader = new StringReader(dataAsset.text);
+      weatherData.Add(dayData);
+    }
 
-      string headerLine = reader.ReadLine();
-
-      string dataLine;
-      while ((dataLine = reader.ReadLine()) != null)
-      {
-        string[] values = dataLine.Split(',');
-        DailyWeatherData dayData = new DailyWeatherData();
-        dayData.Date = values[0].Trim();
-
-        if (float.TryParse(values[1].Trim(), out float tempValue))
-        {
-            dayData.AirTemperature = tempValue;
-        } 
-        if (float.TryParse(values[2].Trim(), out float precipValue))
-        {
-            dayData.Precipitation = precipValue;
-        }
-        if (float.TryParse(values[3].Trim(), out float swValue))
-        {
-            dayData.IncomingShortwave = swValue;
-        }
-        if (float.TryParse(values[4].Trim(), out float windValue))
-        {
-            dayData.WindSpeed = windValue;
-        }
-        if (float.TryParse(values[5].Trim(), out float humidityValue))
-        {
-            dayData.Humidity = humidityValue;
-        }
-
-        weatherData.Add(dayData);
-      }
-
-      Debug.Log($"Loaded {weatherData.Count} days of weather data.");
+    Debug.Log($"Loaded {weatherData.Count} days of weather data.");
   }
 
   void UpdateParametersForCurrentDay()
   {
-      if (weatherData != null && currentDayIndex < weatherData.Count)
-      {
-        DailyWeatherData currentDayData = weatherData[currentDayIndex];
-        airTemperature = currentDayData.AirTemperature;
-        precipitation = currentDayData.Precipitation;
-        incomingShortwave = currentDayData.IncomingShortwave;
-        windSpeed = currentDayData.WindSpeed;
-        relativeHumidity = currentDayData.Humidity;
-        Debug.Log($"Simulating Day {currentDayIndex + 1}: Temp={airTemperature}°C, Precip={precipitation}mm");
-      }
+    if (weatherData != null && currentDayIndex < weatherData.Count)
+    {
+      DailyWeatherData currentDayData = weatherData[currentDayIndex];
+      airTemperature = currentDayData.AirTemperature;
+      precipitation = currentDayData.Precipitation;
+      incomingShortwave = currentDayData.IncomingShortwave;
+      windSpeed = currentDayData.WindSpeed;
+      relativeHumidity = currentDayData.Humidity;
+      Debug.Log($"Simulating Day {currentDayIndex + 1}: Temp={airTemperature}°C, Precip={precipitation}mm");
+    }
   }
 
   void SimulateDay(float time)
@@ -191,7 +198,7 @@ public class SurfaceTile : MonoBehaviour
     snowDepth = (SWE * 1000f) / snowDensity;
     SetDepth(snowDepth);
 
-    depthText.text = $"{snowDepth:F2}";
+    depthText.text = $"{snowDepth:F2}mm snow\n{surfaceType}";
   }
 
   void SetDepth(float depth)
