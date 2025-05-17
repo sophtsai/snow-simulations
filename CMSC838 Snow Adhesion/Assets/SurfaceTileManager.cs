@@ -14,7 +14,7 @@ public class SurfaceTileManager : MonoBehaviour
 
 
   // Environment Variables
-  public float airTemperature; // °C
+  public float airTemperature = -3.0f; // °C
   public float precipitation; // mm/day
   public float degreeDayFactor = 3; // mm/°C/day
   public float meltTempThreshold = 0.0f; // °C
@@ -32,7 +32,7 @@ public class SurfaceTileManager : MonoBehaviour
 
   void Start()
   {
-    LoadSimulationData("temp");
+    LoadSimulationData("New York");
   }
 
   void Update()
@@ -43,14 +43,15 @@ public class SurfaceTileManager : MonoBehaviour
   void LoadSimulationData(string simName)
   {
     surfaceTiles = new SurfaceTile[10, 10];
-    Debug.Log("length" + surfaceTiles.GetLength(0) + " " + surfaceTiles.GetLength(1));
     for (int i = 0; i < surfaceTiles.GetLength(0); i++)
     {
       for (int j = 0; j < surfaceTiles.GetLength(1); j++)
       {
-        Debug.Log("i" + i + " j" + j);
         GameObject surfaceTileInstance = Instantiate(surfaceTilePrefab, new Vector3(i, 0, j), Quaternion.identity);
-        surfaceTiles[i, j] = surfaceTileInstance.GetComponent<SurfaceTile>();
+        SurfaceTile tile = surfaceTileInstance.GetComponent<SurfaceTile>();
+        surfaceTiles[i, j] = tile;
+        surfaceTileInstance.name = $"SurfaceTile_{i}_{j}";
+        tile.Initialize(SurfaceType.Concrete);
       }
     }
   }
