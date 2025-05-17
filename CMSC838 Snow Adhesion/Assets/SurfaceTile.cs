@@ -117,4 +117,23 @@ public class SurfaceTile : MonoBehaviour
     surfaceViz.transform.localScale = new Vector3(1, depth / 1000, 1);
     surfaceViz.transform.position = new Vector3(transform.position.x, depth / 2000, transform.position.z);
   }
+
+  void SetGroundTemperature(float airTemperature)
+  {
+    switch (surfaceType)
+    {
+      case SurfaceType.Concrete:
+        groundTemperature = airTemperature + (0.28f * incomingShortwave / 1000f) + 2.5f;
+        break;
+      case SurfaceType.Asphalt:
+        float airTemperatureF = airTemperature * 9f / 5f + 32f;
+        groundTemperature = 26.081f - 0.844f * windSpeed - 0.187f * relativeHumidity - 0.0173f * incomingShortwave + 0.0042254f * windSpeed * airTemperature + 0.00565f * windSpeed * relativeHumidity + 0.0016f * windSpeed * incomingShortwave + 0.00342f * airTemperature * relativeHumidity + 0.000117f * airTemperature * incomingShortwave + 5.7029e-5f * relativeHumidity * incomingShortwave + 0.00425f * airTemperature * airTemperature + 1.9125e-5f * incomingShortwave * incomingShortwave;
+        groundTemperature -= 32f;
+        groundTemperature *= 5f / 9f;
+        break;
+      case SurfaceType.Grass:
+        groundTemperature = airTemperature + (0.12f * incomingShortwave / 1000f) - 1.5f;
+        break;
+    }
+  }
 }
