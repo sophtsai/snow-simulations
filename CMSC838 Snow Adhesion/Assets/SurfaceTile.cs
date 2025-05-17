@@ -39,16 +39,15 @@ public class SurfaceTile : MonoBehaviour
   const float Lf = 3.34e5f; // J/kg 
   const float rhoWater = 1000f; // kg/m^3
   const float aerodynamicResistance = 100f; // s/m
+  public SurfaceType surfaceType;
 
   GameObject surfaceViz;
   GameObject depthTextObj;
   TextMesh depthText;
+  public SurfaceTileManager surfaceTileManager;
 
   void Start()
   {
-    airTemperature = -2.0f;
-    precipitation = 2.0f;
-
     surfaceViz = GameObject.CreatePrimitive(PrimitiveType.Cube);
     surfaceViz.transform.position = transform.position;
     surfaceViz.transform.localScale = new Vector3(1, 0.0f, 1);
@@ -61,6 +60,8 @@ public class SurfaceTile : MonoBehaviour
     depthText = depthTextObj.AddComponent<TextMesh>();
     depthText.fontSize = 10;
     depthText.color = Color.black;
+
+    SetGroundTemperature();
   }
 
   void Update()
@@ -70,7 +71,7 @@ public class SurfaceTile : MonoBehaviour
 
   void SimulateDay(float time)
   {
-    float P_snow = airTemperature <= 0f ? precipitation : 0f;   
+    float P_snow = airTemperature <= 0f ? precipitation : 0f;
     float Ts_K = snowSurfaceTemperature + 273.15f;
     float Ta_K = airTemperature + 273.15f;
 
@@ -79,7 +80,7 @@ public class SurfaceTile : MonoBehaviour
 
     // net longwave radiation
     float Q_LW = (0.85f * sigma * Mathf.Pow(Ta_K, 4)) - (0.98f * sigma * Mathf.Pow(Ts_K, 4));
-    
+
     // sensible heat flux
     float Q_S = (rhoAir * cpAir * (airTemperature - snowSurfaceTemperature)) / aerodynamicResistance;
 
@@ -87,13 +88,14 @@ public class SurfaceTile : MonoBehaviour
     float Q_L = (rhoAir * Lv * (q_a - q_s)) / aerodynamicResistance;
 
     // ground heat flux
+    SetGroundTemperature();
     float snowConductivity = 0.138f * Mathf.Pow((snowDensity / 1000f), 2);
     float temperatureGradient = (snowSurfaceTemperature - groundTemperature) / snowDepth;
     float Q_G = -snowConductivity * temperatureGradient;
 
-    float Q_net = Q_SW + Q_LW + Q_S + Q_L + Q_G ;
-    float meltEnergyPerDay = Q_net * 86400f; 
-    float M = Mathf.Max(0f, meltEnergyPerDay / (rhoWater * Lf)); 
+    float Q_net = Q_SW + Q_LW + Q_S + Q_L + Q_G;
+    float meltEnergyPerDay = Q_net * 86400f;
+    float M = Mathf.Max(0f, meltEnergyPerDay / (rhoWater * Lf));
     float retention = retentionFraction * SWE;
     float R = Mathf.Max(0f, M - retention);
 
@@ -104,8 +106,6 @@ public class SurfaceTile : MonoBehaviour
     SetDepth(snowDepth);
 
     depthText.text = $"{snowDepth:F2}";
-
-    Debug.Log($"SWE: {SWE:F2} mm, Depth: {snowDepth:F2} mm, Melt: {M:F2}");
   }
 
   void SetDepth(float depth)
@@ -114,7 +114,7 @@ public class SurfaceTile : MonoBehaviour
     surfaceViz.transform.position = new Vector3(transform.position.x, depth / 2000, transform.position.z);
   }
 
-  void SetGroundTemperature(float airTemperature)
+  void SetGroundTemperature()
   {
     switch (surfaceType)
     {

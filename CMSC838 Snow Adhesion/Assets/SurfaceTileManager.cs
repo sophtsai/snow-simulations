@@ -14,14 +14,14 @@ public class SurfaceTileManager : MonoBehaviour
 
 
   // Environment Variables
-  public float airTemperature = -3.0f; // °C
+  public float airTemperature; // °C
   public float precipitation; // mm/day
   public float degreeDayFactor = 3; // mm/°C/day
   public float meltTempThreshold = 0.0f; // °C
   public float retentionFraction = 0.05f; // % of SWE retained as snowmelt
   public float snowSurfaceTemperature = 0f; // °C
   public float albedo = 0.85f;
-  public float incomingShortwave = 450f; // W/m^2
+  public float incomingShortwave; // W/m^2
   public float windSpeed = 2f; // m/s
   public float relativeHumidity = 70f; // %
   public float groundTemperature = -2f; // °C
@@ -32,12 +32,23 @@ public class SurfaceTileManager : MonoBehaviour
 
   void Start()
   {
+    airTemperature = -5.0f;
+    precipitation = 3.0f;
+    incomingShortwave = 450.0f;
+
     LoadSimulationData("New York");
   }
 
   void Update()
   {
-
+    for (int i = 0; i < surfaceTiles.GetLength(0); i++)
+    {
+      for (int j = 0; j < surfaceTiles.GetLength(1); j++)
+      {
+        SurfaceTile tile = surfaceTiles[i, j];
+        UpdateTile(tile);
+      }
+    }
   }
 
   void LoadSimulationData(string simName)
@@ -48,11 +59,34 @@ public class SurfaceTileManager : MonoBehaviour
       for (int j = 0; j < surfaceTiles.GetLength(1); j++)
       {
         GameObject surfaceTileInstance = Instantiate(surfaceTilePrefab, new Vector3(i, 0, j), Quaternion.identity);
+        surfaceTileInstance.transform.parent = transform;
         SurfaceTile tile = surfaceTileInstance.GetComponent<SurfaceTile>();
         surfaceTiles[i, j] = tile;
         surfaceTileInstance.name = $"SurfaceTile_{i}_{j}";
-        tile.Initialize(SurfaceType.Concrete);
+        UpdateTile(tile);
+        if (i < 1 || i > 8)
+        {
+          tile.surfaceType = SurfaceType.Grass;
+        }
+        else if (i <= 3 || i >= 6)
+        {
+          tile.surfaceType = SurfaceType.Concrete;
+        }
+        else
+        {
+          tile.surfaceType = SurfaceType.Asphalt;
+        }
       }
     }
+  }
+
+  void UpdateTile(SurfaceTile tile)
+  {
+    tile.airTemperature = airTemperature;
+    tile.precipitation = precipitation;
+    tile.windSpeed = windSpeed;
+    tile.relativeHumidity = relativeHumidity;
+    tile.incomingShortwave = incomingShortwave;
+
   }
 }
