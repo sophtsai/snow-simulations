@@ -30,6 +30,8 @@ public class SurfaceTileManager : MonoBehaviour
   public SurfaceTile[,] surfaceTiles;
   public GameObject surfaceTilePrefab;
 
+  public float t = 0.0f; // days
+
   void Start()
   {
     airTemperature = -5.0f;
@@ -49,6 +51,7 @@ public class SurfaceTileManager : MonoBehaviour
         UpdateTile(tile);
       }
     }
+    ManageSimulation();
   }
 
   void LoadSimulationData(string simName)
@@ -80,6 +83,49 @@ public class SurfaceTileManager : MonoBehaviour
     }
   }
 
+  void ManageSimulation()
+  {
+    t += Time.deltaTime;
+    if (t >= 4.0f)
+    {
+      ApplySnowplow();
+      t = 0.0f;
+    }
+    Debug.Log("time" + t);
+  }
+
+  void ApplySnowplow()
+  {
+    for (int i = 0; i < surfaceTiles.GetLength(0); i++)
+    {
+      float totalRoadSWE = 0.0f;
+      int countConcrete = 0;
+      for (int j = 0; j < surfaceTiles.GetLength(1); j++)
+      {
+        if (surfaceTiles[i, j].SWE > 0 && surfaceTiles[i, j].surfaceType == SurfaceType.Asphalt)
+        {
+          totalRoadSWE += surfaceTiles[i, j].SWE;
+          surfaceTiles[i, j].SWE = 0.0f;
+          surfaceTiles[i, j].snowDepth = 0.0f;
+          surfaceTiles[i, j].snowDensity = 0.0f;
+        }
+        else if (surfaceTiles[i, j].surfaceType == SurfaceType.Concrete)
+        {
+          countConcrete++;
+        }
+      }
+      for (int j = 0; j < surfaceTiles.GetLength(1); j++)
+      {
+        if (surfaceTiles[i, j].surfaceType == SurfaceType.Concrete)
+        {
+          surfaceTiles[i, j].SWE += totalRoadSWE / countConcrete;
+          surfaceTiles[i, j].snowDensity *= 1.5f;
+          surfaceTiles[i, j].snowDepth = surfaceTiles[i, j].SWE * 1000f / surfaceTiles[i, j].snowDensity;
+        }
+      }
+    }
+  }
+
   void UpdateTile(SurfaceTile tile)
   {
     tile.airTemperature = airTemperature;
@@ -87,6 +133,7 @@ public class SurfaceTileManager : MonoBehaviour
     tile.windSpeed = windSpeed;
     tile.relativeHumidity = relativeHumidity;
     tile.incomingShortwave = incomingShortwave;
-
   }
+
+
 }

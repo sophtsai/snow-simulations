@@ -102,7 +102,7 @@ public class SurfaceTile : MonoBehaviour
     SWE += (P_snow - M - R) * time;
     SWE = Mathf.Max(SWE, 0f);
 
-    snowDepth = (SWE * 1000f) / snowDensity;
+    snowDepth = SWE == 0.0f ? 0.0f : (SWE * 1000f) / snowDensity;
     SetDepth(snowDepth);
 
     depthText.text = $"{snowDepth:F2}";
