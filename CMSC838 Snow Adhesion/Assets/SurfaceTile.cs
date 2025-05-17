@@ -33,10 +33,6 @@ public class SurfaceTile : MonoBehaviour
   public float SWE = 0f; // mm
   public float snowDepth = 0f; // mm
   public float snowDensity = 300f; // kg/m^3
-  const float sigma = 5.67e-8f; // W/m^2*K^4
-  const float rhoAir = 1.225f; // kg/m^3
-  const float cpAir = 1005f; // J/kg*K
-  const float Lv = 2.5e6f; // J/kg
   const float q_a = 0.01f; // kg/kg
   const float q_s = 0.0048f; // kg/kg
   const float Ls = 2.834e6f; // J/kg
