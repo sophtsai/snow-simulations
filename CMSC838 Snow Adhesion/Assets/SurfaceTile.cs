@@ -47,6 +47,7 @@ public class SurfaceTile : MonoBehaviour
     precipitation = 2.0f;
 
     surfaceViz = GameObject.CreatePrimitive(PrimitiveType.Cube);
+    surfaceViz.transform.position = transform.position;
     surfaceViz.transform.localScale = new Vector3(1, 0.0f, 1);
 
     depthTextObj = new GameObject("SnowDepthText");
