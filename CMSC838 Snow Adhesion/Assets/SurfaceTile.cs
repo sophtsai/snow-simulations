@@ -105,11 +105,15 @@ public class SurfaceTile : MonoBehaviour
     snowDepth = SWE == 0.0f ? 0.0f : (SWE * 1000f) / snowDensity;
     SetDepth(snowDepth);
 
-    depthText.text = $"{snowDepth:F2}";
+    depthText.text = $"{snowDepth:F2} mm\n{surfaceType}";
   }
 
   void SetDepth(float depth)
   {
+    if (depth == 0f)
+    {
+      depth = 0.01f; // Avoid zero depth for visualization
+    }
     surfaceViz.transform.localScale = new Vector3(1, depth / 1000, 1);
     surfaceViz.transform.position = new Vector3(transform.position.x, depth / 2000, transform.position.z);
   }
